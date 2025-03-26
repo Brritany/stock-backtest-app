@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>台美股回測</title>
+    <!-- 引入 Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- 引入 pyecharts 所需的 echarts.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.3.3/echarts.min.js"></script>
+    <style>
+        body { margin: 20px; }
+        .chart-container { margin-top: 20px; }
+        .results-table { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mb-4">台美股回測與互動圖表</h1>
+        <form method="POST" class="mb-4">
+            <div class="form-group">
+                <label>股票代號 (以逗號分隔, 例：2330.TW, AAPL):</label>
+                <input type="text" name="tickers" class="form-control" value="{{ tickers_input }}" required>
+            </div>
+            <div class="form-group">
+                <label>選擇回測區間：</label>
+                <div class="btn-group" role="group">
+                    <button type="submit" name="period" value="1d" class="btn btn-outline-primary">1天</button>
+                    <button type="submit" name="period" value="5d" class="btn btn-outline-primary">5天</button>
+                    <button type="submit" name="period" value="1m" class="btn btn-outline-primary">1個月</button>
+                    <button type="submit" name="period" value="6m" class="btn btn-outline-primary">6個月</button>
+                    <button type="submit" name="period" value="ytd" class="btn btn-outline-primary">年初至今</button>
+                    <button type="submit" name="period" value="1y" class="btn btn-outline-primary">1年</button>
+                    <button type="submit" name="period" value="3y" class="btn btn-outline-primary">3年</button>
+                    <button type="submit" name="period" value="5y" class="btn btn-outline-primary">5年</button>
+                    <button type="submit" name="period" value="10y" class="btn btn-outline-primary">10年</button>
+                    <button type="submit" name="period" value="20y" class="btn btn-outline-primary">20年</button>
+                    <button type="submit" name="period" value="max" class="btn btn-outline-primary">最長</button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>或自訂日期：</label>
+                <div class="form-row">
+                    <div class="col">
+                        <input type="date" name="start_date" class="form-control" value="{{ start_date }}">
+                    </div>
+                    <div class="col">
+                        <input type="date" name="end_date" class="form-control" value="{{ end_date }}">
+                    </div>
+                    <div class="col">
+                        <button type="submit" name="period" value="custom" class="btn btn-secondary btn-block">自訂回測</button>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>選擇幣別：</label>
+                <div class="form-check form-check-inline">
+                    <input type="radio" name="currency" value="TWD" class="form-check-input" 
+                           {% if currency == "TWD" or not currency %}checked{% endif %}>
+                    <label class="form-check-label">台幣</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input type="radio" name="currency" value="USD" class="form-check-input" 
+                           {% if currency == "USD" %}checked{% endif %}>
+                    <label class="form-check-label">美金</label>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">開始回測</button>
+        </form>
+        
+        {% if price_chart_embed %}
+        <div class="chart-container">
+            <h2>回測期間：{{ start_date }} 至 {{ end_date }}</h2>
+            <h3>股票價格走勢圖 (幣別：{% if currency=='TWD' %}台幣{% else %}美金{% endif %})</h3>
+            <!-- pyecharts 互動圖表 -->
+            {{ price_chart_embed | safe }}
+        </div>
+        {% endif %}
+        
+        {% if pct_chart_embed %}
+        <div class="chart-container">
+            <h3>股票漲跌幅百分比圖</h3>
+            {{ pct_chart_embed | safe }}
+        </div>
+        {% endif %}
+        
+        {% if results %}
+        <div class="results-table">
+            <h3>回測結果</h3>
+            <table class="table table-bordered table-striped">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>股票代號</th>
+                        <th>總報酬率</th>
+                        <th>年化報酬</th>
+                        <th>Beta值</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ticker, metrics in results.items() %}
+                    <tr>
+                        <td>{{ ticker }}</td>
+                        <td>{{ (metrics.total_return * 100)|round(2) }}%</td>
+                        <td>{{ (metrics.annual_return * 100)|round(2) }}%</td>
+                        <td>{{ metrics.beta|round(2) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- 引入 Bootstrap JS 相關依賴 -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
