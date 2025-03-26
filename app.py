@@ -41,12 +41,12 @@ def index():
     results = {}
     price_chart_embed, pct_chart_embed = None, None
     tickers_input, start_date, end_date, currency, selected_period = '', '', '', 'TWD', ''
-    
+
     if request.method == 'POST':
         tickers_input = request.form.get('tickers', '')
         selected_period = request.form.get('period', '')
         currency = request.form.get('currency', 'TWD')
-        
+
         if selected_period and selected_period != 'custom':
             end_date = pd.Timestamp.today().strftime('%Y-%m-%d')
             periods = {
@@ -59,15 +59,15 @@ def index():
         else:
             start_date = request.form.get('start_date')
             end_date = request.form.get('end_date')
-        
+
         tickers_list = [preprocess_ticker(ticker) for ticker in tickers_input.split(',') if ticker.strip()]
-        
-        # 下載 TWDUSD 匯率，轉換成 1 USD = ? TWD
-        conversion_rate = yf.download("TWDUSD=X", period="1d")['Close'].iloc[-1]
-        conversion_rate = float(conversion_rate)
+
+        # 正確取得 conversion_rate 數值
+        conversion_rate_series = yf.download("TWDUSD=X", period="1d")['Close']
+        conversion_rate = float(conversion_rate_series.iloc[0])
         if conversion_rate < 1:
             conversion_rate = 1 / conversion_rate
-        
+
         all_data, bench_cache = {}, {}
         for ticker in tickers_list:
             market = 'tw' if ticker.endswith('.TW') else 'us'
@@ -75,9 +75,6 @@ def index():
             data = yf.download(ticker, start=start_date, end=pd.to_datetime(end_date)+pd.Timedelta(days=1), auto_adjust=True)
             if data.empty:
                 continue
-            # 幣值轉換：
-            # 顯示 TWD：美股 (原 USD) 乘上 conversion_rate；台股保持原值
-            # 顯示 USD：台股 (原 TWD) 除以 conversion_rate；美股保持原值
             if currency == 'TWD':
                 factor = conversion_rate if market == 'us' else 1
             elif currency == 'USD':
@@ -86,7 +83,7 @@ def index():
                 factor = 1
             data['Close'] *= factor
             all_data[ticker] = {'data': data, 'bench': bench_ticker}
-            
+
             if bench_ticker not in bench_cache:
                 bench_data = yf.download(bench_ticker, start=start_date, end=pd.to_datetime(end_date)+pd.Timedelta(days=1), auto_adjust=True)
                 if currency == 'TWD':
@@ -97,7 +94,7 @@ def index():
                     bench_factor = 1
                 bench_data['Close'] *= bench_factor
                 bench_cache[bench_ticker] = bench_data
-        
+
         all_dates = [item['data'].index for item in all_data.values()]
         if not all_dates:
             return render_template('index.html', results={}, price_chart_embed=None, pct_chart_embed=None,
@@ -108,21 +105,16 @@ def index():
             all_data[ticker]['data'] = all_data[ticker]['data'].reindex(combined_dates).ffill().bfill()
         for bench in bench_cache:
             bench_cache[bench] = bench_cache[bench].reindex(combined_dates).ffill().bfill()
-        
-        # 產生價格走勢的互動式圖表 (pyecharts)
-        xaxis = [d.strftime('%Y-%m-%d') for d in combined_dates]
-        price_line = (
-            Line()
-            .add_xaxis(xaxis)
-        )
 
+        xaxis = [d.strftime('%Y-%m-%d') for d in combined_dates]
+
+        price_line = Line().add_xaxis(xaxis)
         for ticker, item in all_data.items():
             close_series = item['data']['Close']
-            y_values = [round(float(val), 2) for val in close_series.values]
+            y_values = [round(val.item() if hasattr(val, "item") else float(val), 2) for val in close_series.values]
             price_line.add_yaxis(ticker, y_values, is_smooth=True)
             tot, ann, beta = calculate_metrics(item['data'], bench_cache[item['bench']])
             results[ticker] = {'total_return': tot, 'annual_return': ann, 'beta': beta}
-
         price_line.set_global_opts(
             title_opts=opts.TitleOpts(title=f"股票價格走勢圖 (幣別：{'台幣' if currency=='TWD' else '美金'})"),
             tooltip_opts=opts.TooltipOpts(trigger="axis"),
@@ -130,19 +122,14 @@ def index():
             xaxis_opts=opts.AxisOpts(type_="category")
         )
         price_chart_embed = price_line.render_embed()
-        
-        # 產生漲跌幅百分比圖 (pyecharts)
-        pct_line = (
-            Line()
-            .add_xaxis(xaxis)
-        )
+
+        pct_line = Line().add_xaxis(xaxis)
         for ticker, item in all_data.items():
             close_series = item['data']['Close']
             first_val = close_series.iloc[0]
             pct_series = (close_series / first_val - 1) * 100
-            y_pct = [round(float(val), 2) for val in pct_series.values]
+            y_pct = [round(val.item() if hasattr(val, "item") else float(val), 2) for val in pct_series.values]
             pct_line.add_yaxis(ticker, y_pct, is_smooth=True)
-
         pct_line.set_global_opts(
             title_opts=opts.TitleOpts(title="股票漲跌幅百分比圖"),
             tooltip_opts=opts.TooltipOpts(trigger="axis"),
@@ -150,10 +137,10 @@ def index():
             xaxis_opts=opts.AxisOpts(type_="category")
         )
         pct_chart_embed = pct_line.render_embed()
-    
-    return render_template('index.html', results=results, price_chart_embed=price_chart_embed, 
-                           pct_chart_embed=pct_chart_embed, tickers_input=tickers_input, 
-                           start_date=start_date, end_date=end_date, selected_period=selected_period, 
+
+    return render_template('index.html', results=results, price_chart_embed=price_chart_embed,
+                           pct_chart_embed=pct_chart_embed, tickers_input=tickers_input,
+                           start_date=start_date, end_date=end_date, selected_period=selected_period,
                            currency=currency)
 
 # for local use, like VS code etc.
