@@ -4,12 +4,9 @@ import pandas as pd
 import numpy as np
 from pyecharts.charts import Line
 from pyecharts import options as opts
-import os
-from datetime import datetime
 
 app = Flask(__name__)
 
-# === 訪問人次計數功能 ===
 counter_file = "counter.txt"
 
 def read_counter():
@@ -22,7 +19,6 @@ def write_counter(count):
     with open(counter_file, "w") as f:
         f.write(str(count))
 
-# === 工具函式 ===
 def preprocess_ticker(ticker):
     ticker = ticker.strip()
     if '.' not in ticker and ticker.isdigit():
@@ -52,12 +48,10 @@ def calculate_metrics(data, bench_data):
         beta = covariance / variance if variance != 0 else np.nan
     return total_return, annual_return, beta
 
-# === 主頁路由 ===
 @app.route('/', methods=['GET', 'POST'])
 def index():
     count = read_counter() + 1
     write_counter(count)
-
     results = {}
     price_chart_embed, pct_chart_embed = None, None
     tickers_input, start_date, end_date, currency, selected_period = '', '', '', 'TWD', ''
@@ -82,6 +76,7 @@ def index():
 
         tickers_list = [preprocess_ticker(ticker) for ticker in tickers_input.split(',') if ticker.strip()]
 
+        # 正確取得 conversion_rate 數值
         conversion_rate_series = yf.download("TWDUSD=X", period="1d")['Close']
         conversion_rate = float(conversion_rate_series.iloc[0])
         if conversion_rate < 1:
@@ -94,15 +89,23 @@ def index():
             data = yf.download(ticker, start=start_date, end=pd.to_datetime(end_date)+pd.Timedelta(days=1), auto_adjust=True)
             if data.empty:
                 continue
-            factor = conversion_rate if market == 'us' and currency == 'TWD' else \
-                     1 / conversion_rate if market == 'tw' and currency == 'USD' else 1
+            if currency == 'TWD':
+                factor = conversion_rate if market == 'us' else 1
+            elif currency == 'USD':
+                factor = 1 / conversion_rate if market == 'tw' else 1
+            else:
+                factor = 1
             data['Close'] *= factor
             all_data[ticker] = {'data': data, 'bench': bench_ticker}
 
             if bench_ticker not in bench_cache:
                 bench_data = yf.download(bench_ticker, start=start_date, end=pd.to_datetime(end_date)+pd.Timedelta(days=1), auto_adjust=True)
-                bench_factor = conversion_rate if bench_ticker == '^GSPC' and currency == 'TWD' else \
-                               1 / conversion_rate if bench_ticker == '^TWII' and currency == 'USD' else 1
+                if currency == 'TWD':
+                    bench_factor = conversion_rate if bench_ticker == '^GSPC' else 1
+                elif currency == 'USD':
+                    bench_factor = 1 / conversion_rate if bench_ticker == '^TWII' else 1
+                else:
+                    bench_factor = 1
                 bench_data['Close'] *= bench_factor
                 bench_cache[bench_ticker] = bench_data
 
@@ -110,9 +113,7 @@ def index():
         if not all_dates:
             return render_template('index.html', results={}, price_chart_embed=None, pct_chart_embed=None,
                                    tickers_input=tickers_input, start_date=start_date, end_date=end_date,
-                                   selected_period=selected_period, currency=currency,
-                                   visitor_count=count, current_year=datetime.now().year)
-
+                                   selected_period=selected_period, currency=currency)
         combined_dates = sorted(set.union(*map(set, all_dates)))
         for ticker in all_data:
             all_data[ticker]['data'] = all_data[ticker]['data'].reindex(combined_dates).ffill().bfill()
@@ -154,8 +155,9 @@ def index():
     return render_template('index.html', results=results, price_chart_embed=price_chart_embed,
                            pct_chart_embed=pct_chart_embed, tickers_input=tickers_input,
                            start_date=start_date, end_date=end_date, selected_period=selected_period,
-                           currency=currency, visitor_count=count, current_year=datetime.now().year)
+                           currency=currency, visitor_count=count)
 
 if __name__ == '__main__':
+    import os
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
