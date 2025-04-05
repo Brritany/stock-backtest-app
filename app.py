@@ -157,6 +157,32 @@ def index():
                            start_date=start_date, end_date=end_date, selected_period=selected_period,
                            currency=currency, visitor_count=count)
 
+@app.route('/fundamental', methods=['GET', 'POST'])
+def fundamental():
+    info = {}
+    ticker_input = ''
+    
+    if request.method == 'POST':
+        ticker_input = request.form.get('ticker', '').strip()
+        ticker_symbol = ticker_input + '.TW' if ticker_input.isdigit() else ticker_input
+        try:
+            stock = yf.Ticker(ticker_symbol)
+            data = stock.info
+
+            info = {
+                '公司名稱': data.get('longName', '無資料'),
+                '市場代號': data.get('symbol', '無資料'),
+                '市值': f"{data.get('marketCap', 0):,}" if data.get('marketCap') else '無資料',
+                '本益比 (PE)': data.get('trailingPE', '無資料'),
+                '每股盈餘 (EPS)': data.get('trailingEps', '無資料'),
+                '股息殖利率': f"{round(data.get('dividendYield', 0)*100, 2)}%" if data.get('dividendYield') else '無資料',
+                '產業類別': data.get('sector', '無資料')
+            }
+        except Exception as e:
+            info = {'錯誤': f'無法取得資料：{e}'}
+
+    return render_template('fundamental.html', info=info, ticker_input=ticker_input)
+
 if __name__ == '__main__':
     import os
     port = int(os.environ.get("PORT", 5000))

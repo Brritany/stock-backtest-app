@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>基本面資訊查詢</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body { margin: 20px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1 class="mb-4">股票基本面資訊查詢</h1>
+    <form method="POST" class="form-inline mb-4">
+        <label class="mr-2">輸入股票代號：</label>
+        <input type="text" name="ticker" class="form-control mr-2" value="{{ ticker_input }}" required placeholder="例如 2330 或 AAPL">
+        <button type="submit" class="btn btn-primary">查詢</button>
+    </form>
+
+    {% if info %}
+        <h4>查詢結果：</h4>
+        <table class="table table-bordered mt-3">
+            <tbody>
+            {% for key, value in info.items() %}
+                <tr>
+                    <th>{{ key }}</th>
+                    <td>{{ value }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+    <a href="/" class="btn btn-link mt-3">← 回首頁</a>
+</div>
+</body>
+</html>
