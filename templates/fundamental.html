@@ -13,6 +13,7 @@
 <body>
     <div class="container" id="exportArea">
         <h1 class="mb-4 text-center">基本面資訊</h1>
+
         <!-- 導覽列 -->
         <nav class="mb-4">
             <a href="/" class="btn btn-outline-secondary btn-sm">回測分析</a>
@@ -20,7 +21,18 @@
             <a href="/report" class="btn btn-outline-secondary btn-sm">績效報告</a>
         </nav>
 
+        <!-- 股票代號輸入 -->
+        <form method="POST" class="mb-4">
+            <div class="form-group">
+                <label>輸入股票代號（例：2330.TW, AAPL）：</label>
+                <input type="text" name="tickers" class="form-control" value="{{ tickers_input }}" required>
+            </div>
+            <button type="submit" class="btn btn-primary">查詢</button>
+        </form>
+
+        <!-- 查詢結果 -->
         {% if fundamentals %}
+        <h3>查詢結果：</h3>
         <table class="table table-bordered table-striped">
             <thead class="thead-dark">
                 <tr>
@@ -43,6 +55,7 @@
                 {% endfor %}
             </tbody>
         </table>
+        <!-- 匯出 PDF 按鈕 -->
         <button class="btn btn-outline-danger mt-3" onclick="downloadPDF()">匯出 PDF</button>
         {% endif %}
     </div>
@@ -57,7 +70,6 @@
             html2canvas:  { scale: 3, useCORS: true },
             jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
         };
-
         setTimeout(() => {
             html2pdf().set(opt).from(element).save();
         }, 1000);
