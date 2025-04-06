@@ -296,7 +296,7 @@ def download():
                 pdf.cell(200, 10, txt=f"{k}: {v}", ln=1)
 
         output = io.BytesIO()
-        pdf_bytes = pdf.output(dest='S').encode('utf-8')  # 中文使用 utf-8 編碼
+        pdf_bytes = pdf.output(dest='S')
         output.write(pdf_bytes)
         output.seek(0)
 
