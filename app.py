@@ -7,7 +7,6 @@ from pyecharts import options as opts
 import io
 import os
 import xlsxwriter
-from fpdf import FPDF
 
 app = Flask(__name__)
 
@@ -245,7 +244,7 @@ def download():
     tickers_input = request.form.get('tickers', '')
     start_date = request.form.get('start_date')
     end_date = request.form.get('end_date')
-    file_format = request.form.get('format')  # "pdf" or "excel"
+    file_format = request.form.get('format')  # 預期為 "excel"
 
     tickers_list = [ticker.strip() for ticker in tickers_input.split(',') if ticker.strip()]
     results = {}
@@ -274,39 +273,8 @@ def download():
             '夏普比率': round(float(sharpe_ratio), 2)
         }
 
-    # ===== PDF 匯出 =====
-    if file_format == 'pdf':
-        class PDF(FPDF):
-            pass
-
-        pdf = PDF()
-        pdf.add_page()
-
-        # 使用自定義中文字型
-        font_path = os.path.join("fonts", "TaipeiSansTCBeta-Regular.ttf")
-        pdf.add_font("Taipei", "", font_path, uni=True)
-        pdf.set_font("Taipei", "", 14)
-
-        pdf.cell(200, 10, txt="股票績效報告", ln=1, align="C")
-
-        for ticker, metrics in results.items():
-            pdf.ln(5)
-            pdf.cell(200, 10, txt=f"{ticker}", ln=1)
-            for k, v in metrics.items():
-                pdf.cell(200, 10, txt=f"{k}: {v}", ln=1)
-
-        output = io.BytesIO()
-        pdf_bytes = pdf.output(dest='S')
-        output.write(pdf_bytes)
-        output.seek(0)
-
-        return send_file(output,
-                         as_attachment=True,
-                         download_name="report.pdf",
-                         mimetype='application/pdf')
-
     # ===== Excel 匯出 =====
-    elif file_format == 'excel':
+    if file_format == 'excel':
         output = io.BytesIO()
         workbook = xlsxwriter.Workbook(output)
         worksheet = workbook.add_worksheet("績效報告")
@@ -325,8 +293,7 @@ def download():
         return send_file(output, as_attachment=True, download_name="report.xlsx",
                          mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
-    else:
-        return "格式錯誤", 400
+    return "格式錯誤", 400
 
 if __name__ == '__main__':
     import os
