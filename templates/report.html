@@ -85,16 +85,16 @@
                 </tbody>
             </table>
 
-            <!-- PDF 匯出按鈕（前端） -->
-            <button class="btn btn-outline-danger mt-3" onclick="downloadPDF()">匯出 PDF</button>
-
-            <!-- Excel 匯出按鈕（後端） -->
-            <form method="POST" action="/download" class="mt-3">
-                <input type="hidden" name="tickers" value="{{ tickers_input }}">
-                <input type="hidden" name="start_date" value="{{ start_date }}">
-                <input type="hidden" name="end_date" value="{{ end_date }}">
-                <button type="submit" name="format" value="excel" class="btn btn-outline-success">匯出 Excel</button>
-            </form>
+            <!-- PDF + Excel 匯出按鈕（同一行） -->
+            <div class="d-flex mt-3">
+                <button class="btn btn-outline-danger mr-2" onclick="downloadPDF()">匯出 PDF</button>
+                <form method="POST" action="/download" class="mb-0">
+                    <input type="hidden" name="tickers" value="{{ tickers_input }}">
+                    <input type="hidden" name="start_date" value="{{ start_date }}">
+                    <input type="hidden" name="end_date" value="{{ end_date }}">
+                    <button type="submit" name="format" value="excel" class="btn btn-outline-success">匯出 Excel</button>
+                </form>
+            </div>
         {% endif %}
     </div>
 
@@ -105,7 +105,7 @@
             margin:       0.3,
             filename:     'report.pdf',
             image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 3, useCORS: true },
+            html2canvas:  { scale: 9, useCORS: true },  // 提高畫質
             jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
         };
         setTimeout(() => {
