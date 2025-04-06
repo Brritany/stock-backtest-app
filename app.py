@@ -183,6 +183,43 @@ def fundamental():
 
     return render_template('fundamental.html', info=info, ticker_input=ticker_input)
 
+@app.route('/report', methods=['GET', 'POST'])
+def report():
+    results = {}
+    tickers_input = ''
+    start_date = '2020-01-01'
+    end_date = pd.Timestamp.today().strftime('%Y-%m-%d')
+
+    if request.method == 'POST':
+        tickers_input = request.form.get('tickers', '')
+        tickers_list = [ticker.strip() for ticker in tickers_input.split(',') if ticker.strip()]
+
+        for ticker in tickers_list:
+            yf_ticker = ticker + '.TW' if ticker.isdigit() else ticker
+            data = yf.download(yf_ticker, start=start_date, end=end_date, auto_adjust=True)
+            if data.empty:
+                continue
+
+            close = data['Close']
+            daily_return = close.pct_change().dropna()
+            total_return = (close.iloc[-1] - close.iloc[0]) / close.iloc[0]
+            annual_return = (1 + total_return) ** (1 / ((close.index[-1] - close.index[0]).days / 365.0)) - 1
+            volatility = daily_return.std() * np.sqrt(252)
+            sharpe_ratio = (daily_return.mean() / daily_return.std()) * np.sqrt(252)
+            cummax = close.cummax()
+            drawdown = (close - cummax) / cummax
+            max_drawdown = drawdown.min()
+
+            results[ticker] = {
+                '總報酬率': round(total_return * 100, 2),
+                '年化報酬率': round(annual_return * 100, 2),
+                '最大回撤': round(max_drawdown * 100, 2),
+                '年化波動率': round(volatility * 100, 2),
+                '夏普比率': round(sharpe_ratio, 2)
+            }
+
+    return render_template('report.html', results=results, tickers_input=tickers_input)
+
 if __name__ == '__main__':
     import os
     port = int(os.environ.get("PORT", 5000))

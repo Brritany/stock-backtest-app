@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>績效報告</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body { margin: 20px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1 class="mb-4">股票績效報告</h1>
+
+    <!-- 導覽按鈕列 -->
+    <nav class="mb-4">
+        <a href="/" class="btn {% if request.path == '/' %}btn-primary{% else %}btn-outline-secondary{% endif %} btn-sm">回測分析</a>
+        <a href="/fundamental" class="btn {% if request.path == '/fundamental' %}btn-primary{% else %}btn-outline-secondary{% endif %} btn-sm">基本面資訊</a>
+        <a href="/report" class="btn {% if request.path == '/report' %}btn-primary{% else %}btn-outline-secondary{% endif %} btn-sm">績效報告</a>
+    </nav>
+
+    <form method="POST" class="form-inline mb-4">
+        <label class="mr-2">輸入股票代號（可多個，用逗號分隔）：</label>
+        <input type="text" name="tickers" class="form-control mr-2" value="{{ tickers_input }}" placeholder="如 2330, AAPL" required>
+        <button type="submit" class="btn btn-primary">產生報告</button>
+    </form>
+
+    {% if results %}
+        <table class="table table-bordered mt-4">
+            <thead class="thead-dark">
+                <tr>
+                    <th>股票代號</th>
+                    <th>總報酬率</th>
+                    <th>年化報酬率</th>
+                    <th>最大回撤</th>
+                    <th>年化波動率</th>
+                    <th>夏普比率</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ticker, metrics in results.items() %}
+                <tr>
+                    <td>{{ ticker }}</td>
+                    <td>{{ metrics.總報酬率 }}%</td>
+                    <td>{{ metrics.年化報酬率 }}%</td>
+                    <td>{{ metrics.最大回撤 }}%</td>
+                    <td>{{ metrics.年化波動率 }}%</td>
+                    <td>{{ metrics.夏普比率 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+</div>
+</body>
+</html>
