@@ -11,6 +11,11 @@
 <body>
 <div class="container">
     <h1 class="mb-4">股票基本面資訊查詢</h1>
+    <!-- 導覽按鈕列 -->
+    <nav class="mb-4">
+        <a href="/" class="btn {% if request.path == '/' %}btn-primary{% else %}btn-outline-secondary{% endif %} btn-sm">回測分析</a>
+        <a href="/fundamental" class="btn {% if request.path == '/fundamental' %}btn-primary{% else %}btn-outline-secondary{% endif %} btn-sm">基本面資訊</a>
+    </nav>
     <form method="POST" class="form-inline mb-4">
         <label class="mr-2">輸入股票代號：</label>
         <input type="text" name="ticker" class="form-control mr-2" value="{{ ticker_input }}" required placeholder="例如 2330 或 AAPL">
@@ -30,7 +35,6 @@
             </tbody>
         </table>
     {% endif %}
-    <a href="/" class="btn btn-link mt-3">← 回首頁</a>
 </div>
 </body>
 </html>
