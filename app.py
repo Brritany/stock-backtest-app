@@ -277,7 +277,8 @@ def download():
     if file_format == 'pdf':
         pdf = FPDF()
         pdf.add_page()
-        pdf.set_font("Arial", size=12)
+        pdf.set_font("Helvetica", size=12)
+
         pdf.cell(200, 10, txt="股票績效報告", ln=1, align="C")
 
         for ticker, metrics in results.items():
@@ -287,7 +288,8 @@ def download():
                 pdf.cell(200, 10, txt=f"{k}: {v}", ln=1)
 
         output = io.BytesIO()
-        pdf.output(output)
+        pdf_output = pdf.output(dest='S').encode('latin-1')  # 轉換為 bytes
+        output.write(pdf_output)
         output.seek(0)
         return send_file(output, as_attachment=True, download_name="report.pdf", mimetype='application/pdf')
 
