@@ -19,11 +19,24 @@
         <a href="/report" class="btn {% if request.path == '/report' %}btn-primary{% else %}btn-outline-secondary{% endif %} btn-sm">績效報告</a>
     </nav>
 
-    <form method="POST" class="form-inline mb-4">
-        <label class="mr-2">輸入股票代號（可多個，用逗號分隔）：</label>
-        <input type="text" name="tickers" class="form-control mr-2" value="{{ tickers_input }}" placeholder="如 2330, AAPL" required>
-        <button type="submit" class="btn btn-primary">產生報告</button>
+    <form method="POST" class="mb-4">
+        <div class="form-group">
+            <label>輸入股票代號（可多個，用逗號分隔）：</label>
+            <input type="text" name="tickers" class="form-control" value="{{ tickers_input }}" placeholder="如 2330, AAPL" required>
+        </div>
+        <div class="form-row">
+            <div class="col">
+                <label>起始日期：</label>
+                <input type="date" name="start_date" class="form-control" value="{{ start_date }}">
+            </div>
+            <div class="col">
+                <label>結束日期：</label>
+                <input type="date" name="end_date" class="form-control" value="{{ end_date }}">
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary mt-3">產生報告</button>
     </form>
+    
 
     {% if results %}
         <table class="table table-bordered mt-4">

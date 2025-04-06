@@ -192,6 +192,8 @@ def report():
 
     if request.method == 'POST':
         tickers_input = request.form.get('tickers', '')
+        start_date = request.form.get('start_date', start_date)
+        end_date = request.form.get('end_date', end_date)
         tickers_list = [ticker.strip() for ticker in tickers_input.split(',') if ticker.strip()]
 
         for ticker in tickers_list:
@@ -211,14 +213,16 @@ def report():
             max_drawdown = drawdown.min()
 
             results[ticker] = {
-                '總報酬率': round(total_return * 100, 2),
-                '年化報酬率': round(annual_return * 100, 2),
-                '最大回撤': round(max_drawdown * 100, 2),
-                '年化波動率': round(volatility * 100, 2),
-                '夏普比率': round(sharpe_ratio, 2)
+            '總報酬率': round(float(total_return) * 100, 2),
+            '年化報酬率': round(float(annual_return) * 100, 2),
+            '最大回撤': round(float(max_drawdown) * 100, 2),
+            '年化波動率': round(float(volatility) * 100, 2),
+            '夏普比率': round(float(sharpe_ratio), 2)
             }
 
-    return render_template('report.html', results=results, tickers_input=tickers_input)
+    return render_template('report.html', results=results, tickers_input=tickers_input,
+                           start_date=start_date, end_date=end_date
+                           )
 
 if __name__ == '__main__':
     import os
