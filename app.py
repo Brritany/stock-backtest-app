@@ -5,8 +5,9 @@ import numpy as np
 from pyecharts.charts import Line
 from pyecharts import options as opts
 import io
-from fpdf import FPDF
+import os
 import xlsxwriter
+from fpdf import FPDF
 
 app = Flask(__name__)
 
@@ -275,9 +276,17 @@ def download():
 
     # ===== PDF 匯出 =====
     if file_format == 'pdf':
-        pdf = FPDF()
+        class PDF(FPDF):
+            pass
+
+        pdf = PDF()
         pdf.add_page()
-        pdf.set_font("Helvetica", size=12)
+
+        # ✅ 加入你自己的中文字型（Regular）
+        font_path = os.path.join("fonts", "TaipeiSansTCBeta-Regular.ttf")
+        pdf.add_font("Taipei", "", font_path, uni=True)
+        pdf.set_font("Taipei", "", 14)
+
         pdf.cell(200, 10, txt="股票績效報告", ln=1, align="C")
 
         for ticker, metrics in results.items():
@@ -287,14 +296,14 @@ def download():
                 pdf.cell(200, 10, txt=f"{k}: {v}", ln=1)
 
         output = io.BytesIO()
-        pdf_output = pdf.output(dest='S').encode('latin-1')
-        output.write(pdf_output)
+        pdf_bytes = pdf.output(dest='S').encode('utf-8')  # ✅ 中文用 utf-8 編碼
+        output.write(pdf_bytes)
         output.seek(0)
 
         return send_file(output,
-                        as_attachment=True,
-                        download_name="report.pdf",
-                        mimetype='application/pdf')
+                         as_attachment=True,
+                         download_name="report.pdf",
+                         mimetype='application/pdf')
 
     # ===== Excel 匯出 =====
     elif file_format == 'excel':

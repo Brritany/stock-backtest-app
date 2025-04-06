@@ -3,5 +3,5 @@ yfinance
 pandas
 numpy
 pyecharts
-fpdf
+fpdf2
 xlsxwriter
