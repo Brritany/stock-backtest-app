@@ -282,7 +282,7 @@ def download():
         pdf = PDF()
         pdf.add_page()
 
-        # ✅ 加入你自己的中文字型（Regular）
+        # 使用自定義中文字型
         font_path = os.path.join("fonts", "TaipeiSansTCBeta-Regular.ttf")
         pdf.add_font("Taipei", "", font_path, uni=True)
         pdf.set_font("Taipei", "", 14)
@@ -296,7 +296,7 @@ def download():
                 pdf.cell(200, 10, txt=f"{k}: {v}", ln=1)
 
         output = io.BytesIO()
-        pdf_bytes = pdf.output(dest='S').encode('utf-8')  # ✅ 中文用 utf-8 編碼
+        pdf_bytes = pdf.output(dest='S').encode('utf-8')  # 中文使用 utf-8 編碼
         output.write(pdf_bytes)
         output.seek(0)
 
