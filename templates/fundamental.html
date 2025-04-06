@@ -2,64 +2,49 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>基本面資訊</title>
+    <title>股票基本面資訊查詢</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         body { margin: 20px; }
-        table { margin-top: 20px; }
     </style>
 </head>
 <body>
     <div class="container" id="exportArea">
-        <h1 class="mb-4 text-center">基本面資訊</h1>
-
-        <!-- 導覽列 -->
+        <h1 class="mb-4 text-center">股票基本面資訊查詢</h1>
+        <!-- 導覽按鈕列 -->
         <nav class="mb-4">
-            <a href="/" class="btn btn-outline-secondary btn-sm">回測分析</a>
-            <a href="/fundamental" class="btn btn-primary btn-sm">基本面資訊</a>
-            <a href="/report" class="btn btn-outline-secondary btn-sm">績效報告</a>
+            <a href="/" class="btn {% if request.path == '/' %}btn-primary{% else %}btn-outline-secondary{% endif %} btn-sm">回測分析</a>
+            <a href="/fundamental" class="btn {% if request.path == '/fundamental' %}btn-primary{% else %}btn-outline-secondary{% endif %} btn-sm">基本面資訊</a>
+            <a href="/report" class="btn {% if request.path == '/report' %}btn-primary{% else %}btn-outline-secondary{% endif %} btn-sm">績效報告</a>
         </nav>
 
         <!-- 股票代號輸入 -->
-        <form method="POST" class="mb-4">
-            <div class="form-group">
-                <label>輸入股票代號（例：2330.TW, AAPL）：</label>
-                <input type="text" name="tickers" class="form-control" value="{{ tickers_input }}" required>
-            </div>
+        <form method="POST" class="form-inline mb-4">
+            <label class="mr-2">輸入股票代號：</label>
+            <input type="text" name="ticker" class="form-control mr-2" value="{{ ticker_input }}" required placeholder="例如 2330 或 AAPL">
             <button type="submit" class="btn btn-primary">查詢</button>
         </form>
 
         <!-- 查詢結果 -->
-        {% if fundamentals %}
-        <h3>查詢結果：</h3>
-        <table class="table table-bordered table-striped">
-            <thead class="thead-dark">
-                <tr>
-                    <th>股票代號</th>
-                    <th>市值</th>
-                    <th>本益比</th>
-                    <th>殖利率</th>
-                    <th>ROE</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in fundamentals %}
-                <tr>
-                    <td>{{ item.ticker }}</td>
-                    <td>{{ item.market_cap }}</td>
-                    <td>{{ item.pe_ratio }}</td>
-                    <td>{{ item.dividend_yield }}</td>
-                    <td>{{ item.roe }}</td>
-                </tr>
+        {% if info %}
+            <h4>查詢結果：</h4>
+            <table class="table table-bordered mt-3">
+                <tbody>
+                {% for key, value in info.items() %}
+                    <tr>
+                        <th>{{ key }}</th>
+                        <td>{{ value }}</td>
+                    </tr>
                 {% endfor %}
-            </tbody>
-        </table>
-        <!-- 匯出 PDF 按鈕 -->
-        <button class="btn btn-outline-danger mt-3" onclick="downloadPDF()">匯出 PDF</button>
+                </tbody>
+            </table>
+            <!-- 匯出 PDF 按鈕 -->
+            <button class="btn btn-outline-danger mt-3" onclick="downloadPDF()">匯出 PDF</button>
         {% endif %}
     </div>
 
+    <!-- PDF 匯出功能 -->
     <script>
     function downloadPDF() {
         const element = document.getElementById("exportArea");
@@ -78,7 +63,7 @@
 
     <hr>
     <footer class="text-center text-muted mt-4 mb-4">
-        &copy; {{ current_year }} 股票回測網頁. All rights reserved.
+        <span>&copy; {{ current_year }} 股票回測網頁. All rights reserved.</span>
     </footer>
 </body>
 </html>
