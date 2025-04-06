@@ -9,33 +9,49 @@
     </style>
 </head>
 <body>
-<div class="container">
-    <h1 class="mb-4 text-center">股票基本面資訊查詢</h1>
-    <!-- 導覽按鈕列 -->
-    <nav class="mb-4">
-        <a href="/" class="btn {% if request.path == '/' %}btn-primary{% else %}btn-outline-secondary{% endif %} btn-sm">回測分析</a>
-        <a href="/fundamental" class="btn {% if request.path == '/fundamental' %}btn-primary{% else %}btn-outline-secondary{% endif %} btn-sm">基本面資訊</a>
-        <a href="/report" class="btn {% if request.path == '/report' %}btn-primary{% else %}btn-outline-secondary{% endif %} btn-sm">績效報告</a>
-    </nav>
-    <form method="POST" class="form-inline mb-4">
-        <label class="mr-2">輸入股票代號：</label>
-        <input type="text" name="ticker" class="form-control mr-2" value="{{ ticker_input }}" required placeholder="例如 2330 或 AAPL">
-        <button type="submit" class="btn btn-primary">查詢</button>
-    </form>
+    <div class="container">
+        <h1 class="mb-4 text-center">股票基本面資訊查詢</h1>
+        <!-- 導覽按鈕列 -->
+        <nav class="mb-4">
+            <a href="/" class="btn {% if request.path == '/' %}btn-primary{% else %}btn-outline-secondary{% endif %} btn-sm">回測分析</a>
+            <a href="/fundamental" class="btn {% if request.path == '/fundamental' %}btn-primary{% else %}btn-outline-secondary{% endif %} btn-sm">基本面資訊</a>
+            <a href="/report" class="btn {% if request.path == '/report' %}btn-primary{% else %}btn-outline-secondary{% endif %} btn-sm">績效報告</a>
+        </nav>
+        <form method="POST" class="form-inline mb-4">
+            <label class="mr-2">輸入股票代號：</label>
+            <input type="text" name="ticker" class="form-control mr-2" value="{{ ticker_input }}" required placeholder="例如 2330 或 AAPL">
+            <button type="submit" class="btn btn-primary">查詢</button>
+        </form>
 
-    {% if info %}
-        <h4>查詢結果：</h4>
-        <table class="table table-bordered mt-3">
-            <tbody>
-            {% for key, value in info.items() %}
-                <tr>
-                    <th>{{ key }}</th>
-                    <td>{{ value }}</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    {% endif %}
-</div>
+        {% if info %}
+            <h4>查詢結果：</h4>
+            <table class="table table-bordered mt-3">
+                <tbody>
+                {% for key, value in info.items() %}
+                    <tr>
+                        <th>{{ key }}</th>
+                        <td>{{ value }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+
+        <form method="POST" action="/download" class="mt-3">
+            <input type="hidden" name="tickers" value="{{ tickers_input }}">
+            <input type="hidden" name="start_date" value="{{ start_date }}">
+            <input type="hidden" name="end_date" value="{{ end_date }}">
+            <button type="submit" name="format" value="pdf" class="btn btn-outline-danger">匯出 PDF</button>
+            <button type="submit" name="format" value="excel" class="btn btn-outline-success ml-2">匯出 Excel</button>
+        </form>
+        
+    </div>
+
+    <hr>
+    <footer class="d-flex justify-content-between text-muted mt-4 mb-4">
+        <span>訪問人次：{{ visitor_count }} 次</span>
+        <span>&copy; {{ current_year }} 股票回測網頁. All rights reserved.</span>
+    </footer>
+
 </body>
 </html>

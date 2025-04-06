@@ -9,83 +9,97 @@
     </style>
 </head>
 <body>
-<div class="container">
-    <h1 class="mb-4 text-center">股票績效報告</h1>
+    <div class="container">
+        <h1 class="mb-4 text-center">股票績效報告</h1>
 
-    <!-- 導覽按鈕列 -->
-    <nav class="mb-4">
-        <a href="/" class="btn {% if request.path == '/' %}btn-primary{% else %}btn-outline-secondary{% endif %} btn-sm">回測分析</a>
-        <a href="/fundamental" class="btn {% if request.path == '/fundamental' %}btn-primary{% else %}btn-outline-secondary{% endif %} btn-sm">基本面資訊</a>
-        <a href="/report" class="btn {% if request.path == '/report' %}btn-primary{% else %}btn-outline-secondary{% endif %} btn-sm">績效報告</a>
-    </nav>
-    
-    <form method="POST" class="mb-4">
-        <!-- 股票代號 -->
-        <div class="form-group">
-            <label><strong>輸入股票代號（可多個，用逗號分隔）：</strong></label>
-            <input type="text" name="tickers" class="form-control" value="{{ tickers_input }}" placeholder="如 2330, AAPL" required>
-        </div>
-    
-        <!-- 快速區間 -->
-        <div class="form-group">
-            <label><strong>快速選擇回測區間：</strong></label><br>
-            <div class="btn-group btn-group-sm d-flex flex-wrap" role="group">
-                <button type="submit" name="period" value="ytd" class="btn btn-outline-primary">年初至今</button>
-                <button type="submit" name="period" value="1m" class="btn btn-outline-primary">1個月</button>
-                <button type="submit" name="period" value="3m" class="btn btn-outline-primary">3個月</button>
-                <button type="submit" name="period" value="6m" class="btn btn-outline-primary">6個月</button>
-                <button type="submit" name="period" value="1y" class="btn btn-outline-primary">1年</button>
-                <button type="submit" name="period" value="3y" class="btn btn-outline-primary">3年</button>
-                <button type="submit" name="period" value="5y" class="btn btn-outline-primary">5年</button>
-                <button type="submit" name="period" value="10y" class="btn btn-outline-primary">10年</button>
-                <button type="submit" name="period" value="20y" class="btn btn-outline-primary">20年</button>
-                <button type="submit" name="period" value="max" class="btn btn-outline-primary">最長</button>
+        <!-- 導覽按鈕列 -->
+        <nav class="mb-4">
+            <a href="/" class="btn {% if request.path == '/' %}btn-primary{% else %}btn-outline-secondary{% endif %} btn-sm">回測分析</a>
+            <a href="/fundamental" class="btn {% if request.path == '/fundamental' %}btn-primary{% else %}btn-outline-secondary{% endif %} btn-sm">基本面資訊</a>
+            <a href="/report" class="btn {% if request.path == '/report' %}btn-primary{% else %}btn-outline-secondary{% endif %} btn-sm">績效報告</a>
+        </nav>
+        
+        <form method="POST" class="mb-4">
+            <!-- 股票代號 -->
+            <div class="form-group">
+                <label><strong>輸入股票代號（可多個，用逗號分隔）：</strong></label>
+                <input type="text" name="tickers" class="form-control" value="{{ tickers_input }}" placeholder="如 2330, AAPL" required>
             </div>
-        </div>
-    
-        <!-- 日期 -->
-        <div class="form-row">
-            <div class="col">
-                <label><strong>起始日期：</strong></label>
-                <input type="date" name="start_date" class="form-control" value="{{ start_date }}">
+        
+            <!-- 快速區間 -->
+            <div class="form-group">
+                <label><strong>快速選擇回測區間：</strong></label><br>
+                <div class="btn-group btn-group-sm d-flex flex-wrap" role="group">
+                    <button type="submit" name="period" value="ytd" class="btn btn-outline-primary">年初至今</button>
+                    <button type="submit" name="period" value="1m" class="btn btn-outline-primary">1個月</button>
+                    <button type="submit" name="period" value="3m" class="btn btn-outline-primary">3個月</button>
+                    <button type="submit" name="period" value="6m" class="btn btn-outline-primary">6個月</button>
+                    <button type="submit" name="period" value="1y" class="btn btn-outline-primary">1年</button>
+                    <button type="submit" name="period" value="3y" class="btn btn-outline-primary">3年</button>
+                    <button type="submit" name="period" value="5y" class="btn btn-outline-primary">5年</button>
+                    <button type="submit" name="period" value="10y" class="btn btn-outline-primary">10年</button>
+                    <button type="submit" name="period" value="20y" class="btn btn-outline-primary">20年</button>
+                    <button type="submit" name="period" value="max" class="btn btn-outline-primary">最長</button>
+                </div>
             </div>
-            <div class="col">
-                <label><strong>結束日期：</strong></label>
-                <input type="date" name="end_date" class="form-control" value="{{ end_date }}">
+        
+            <!-- 日期 -->
+            <div class="form-row">
+                <div class="col">
+                    <label><strong>起始日期：</strong></label>
+                    <input type="date" name="start_date" class="form-control" value="{{ start_date }}">
+                </div>
+                <div class="col">
+                    <label><strong>結束日期：</strong></label>
+                    <input type="date" name="end_date" class="form-control" value="{{ end_date }}">
+                </div>
             </div>
-        </div>
-    
-        <button type="submit" class="btn btn-primary mt-3">產生報告</button>
-    </form>
-    
-    
+        
+            <button type="submit" class="btn btn-primary mt-3">產生報告</button>
+        </form>
 
-    {% if results %}
-        <table class="table table-bordered mt-4">
-            <thead class="thead-dark">
-                <tr>
-                    <th>股票代號</th>
-                    <th>總報酬率</th>
-                    <th>年化報酬率</th>
-                    <th>最大回撤</th>
-                    <th>年化波動率</th>
-                    <th>夏普比率</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for ticker, metrics in results.items() %}
-                <tr>
-                    <td>{{ ticker }}</td>
-                    <td>{{ metrics.總報酬率 }}%</td>
-                    <td>{{ metrics.年化報酬率 }}%</td>
-                    <td>{{ metrics.最大回撤 }}%</td>
-                    <td>{{ metrics.年化波動率 }}%</td>
-                    <td>{{ metrics.夏普比率 }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% endif %}
-</div>
+        {% if results %}
+            <table class="table table-bordered mt-4">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>股票代號</th>
+                        <th>總報酬率</th>
+                        <th>年化報酬率</th>
+                        <th>最大回撤</th>
+                        <th>年化波動率</th>
+                        <th>夏普比率</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ticker, metrics in results.items() %}
+                    <tr>
+                        <td>{{ ticker }}</td>
+                        <td>{{ metrics.總報酬率 }}%</td>
+                        <td>{{ metrics.年化報酬率 }}%</td>
+                        <td>{{ metrics.最大回撤 }}%</td>
+                        <td>{{ metrics.年化波動率 }}%</td>
+                        <td>{{ metrics.夏普比率 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+
+        <form method="POST" action="/download" class="mt-3">
+            <input type="hidden" name="tickers" value="{{ tickers_input }}">
+            <input type="hidden" name="start_date" value="{{ start_date }}">
+            <input type="hidden" name="end_date" value="{{ end_date }}">
+            <button type="submit" name="format" value="pdf" class="btn btn-outline-danger">匯出 PDF</button>
+            <button type="submit" name="format" value="excel" class="btn btn-outline-success ml-2">匯出 Excel</button>
+        </form>
+        
+    </div>
+
+    <hr>
+    <footer class="d-flex justify-content-between text-muted mt-4 mb-4">
+        <span>訪問人次：{{ visitor_count }} 次</span>
+        <span>&copy; {{ current_year }} 股票回測網頁. All rights reserved.</span>
+    </footer>
+
 </body>
 </html>

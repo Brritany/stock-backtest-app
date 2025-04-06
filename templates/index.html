@@ -115,12 +115,21 @@
             </table>
         </div>
         {% endif %}
+
+        <form method="POST" action="/download" class="mt-3">
+            <input type="hidden" name="tickers" value="{{ tickers_input }}">
+            <input type="hidden" name="start_date" value="{{ start_date }}">
+            <input type="hidden" name="end_date" value="{{ end_date }}">
+            <button type="submit" name="format" value="pdf" class="btn btn-outline-danger">匯出 PDF</button>
+            <button type="submit" name="format" value="excel" class="btn btn-outline-success ml-2">匯出 Excel</button>
+        </form>
+      
     </div>
 
     <hr>
-    <footer class="text-center text-muted mt-4 mb-4">
-        <p>訪問人次：{{ visitor_count }} 次</p>
-        <p>&copy; {{ current_year }} 股票回測網頁. All rights reserved.</p>
+    <footer class="d-flex justify-content-between text-muted mt-4 mb-4">
+        <span>訪問人次：{{ visitor_count }} 次</span>
+        <span>&copy; {{ current_year }} 股票回測網頁. All rights reserved.</span>
     </footer>
     
     <!-- 引入 Bootstrap JS 相關依賴 -->

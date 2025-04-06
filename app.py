@@ -1,9 +1,12 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, send_file
 import yfinance as yf
 import pandas as pd
 import numpy as np
 from pyecharts.charts import Line
 from pyecharts import options as opts
+import io
+from fpdf import FPDF
+import xlsxwriter
 
 app = Flask(__name__)
 
@@ -235,6 +238,81 @@ def report():
     return render_template('report.html', results=results, tickers_input=tickers_input,
                            start_date=start_date, end_date=end_date
                            )
+
+@app.route('/download', methods=['POST'])
+def download():
+    tickers_input = request.form.get('tickers', '')
+    start_date = request.form.get('start_date')
+    end_date = request.form.get('end_date')
+    file_format = request.form.get('format')  # "pdf" or "excel"
+
+    tickers_list = [ticker.strip() for ticker in tickers_input.split(',') if ticker.strip()]
+    results = {}
+
+    for ticker in tickers_list:
+        yf_ticker = ticker + '.TW' if ticker.isdigit() else ticker
+        data = yf.download(yf_ticker, start=start_date, end=end_date, auto_adjust=True)
+        if data.empty:
+            continue
+
+        close = data['Close']
+        daily_return = close.pct_change().dropna()
+        total_return = (close.iloc[-1] - close.iloc[0]) / close.iloc[0]
+        annual_return = (1 + total_return) ** (1 / ((close.index[-1] - close.index[0]).days / 365.0)) - 1
+        volatility = daily_return.std() * np.sqrt(252)
+        sharpe_ratio = (daily_return.mean() / daily_return.std()) * np.sqrt(252)
+        cummax = close.cummax()
+        drawdown = (close - cummax) / cummax
+        max_drawdown = drawdown.min()
+
+        results[ticker] = {
+            '總報酬率': round(float(total_return) * 100, 2),
+            '年化報酬率': round(float(annual_return) * 100, 2),
+            '最大回撤': round(float(max_drawdown) * 100, 2),
+            '年化波動率': round(float(volatility) * 100, 2),
+            '夏普比率': round(float(sharpe_ratio), 2)
+        }
+
+    # ===== PDF 匯出 =====
+    if file_format == 'pdf':
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font("Arial", size=12)
+        pdf.cell(200, 10, txt="股票績效報告", ln=1, align="C")
+
+        for ticker, metrics in results.items():
+            pdf.ln(5)
+            pdf.cell(200, 10, txt=f"{ticker}", ln=1)
+            for k, v in metrics.items():
+                pdf.cell(200, 10, txt=f"{k}: {v}", ln=1)
+
+        output = io.BytesIO()
+        pdf.output(output)
+        output.seek(0)
+        return send_file(output, as_attachment=True, download_name="report.pdf", mimetype='application/pdf')
+
+    # ===== Excel 匯出 =====
+    elif file_format == 'excel':
+        output = io.BytesIO()
+        workbook = xlsxwriter.Workbook(output)
+        worksheet = workbook.add_worksheet("績效報告")
+
+        headers = ["股票代號", "總報酬率", "年化報酬率", "最大回撤", "年化波動率", "夏普比率"]
+        for col, header in enumerate(headers):
+            worksheet.write(0, col, header)
+
+        for row, (ticker, metrics) in enumerate(results.items(), start=1):
+            worksheet.write(row, 0, ticker)
+            for col, key in enumerate(headers[1:], start=1):
+                worksheet.write(row, col, metrics.get(key, ""))
+
+        workbook.close()
+        output.seek(0)
+        return send_file(output, as_attachment=True, download_name="report.xlsx",
+                         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+
+    else:
+        return "格式錯誤", 400
 
 if __name__ == '__main__':
     import os
