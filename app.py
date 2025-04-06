@@ -192,9 +192,21 @@ def report():
 
     if request.method == 'POST':
         tickers_input = request.form.get('tickers', '')
-        start_date = request.form.get('start_date', start_date)
-        end_date = request.form.get('end_date', end_date)
+        selected_period = request.form.get('period', '')
+        end_date = pd.Timestamp.today().strftime('%Y-%m-%d')
         tickers_list = [ticker.strip() for ticker in tickers_input.split(',') if ticker.strip()]
+
+        if selected_period:
+            periods = {
+                '1m': 30, '3m': 90, '6m': 180, '1y': 365,
+                '3y': 365*3, '5y': 365*5, '10y': 365*10,
+                '20y': 365*20, 'max': 365*100,
+                'ytd': pd.Timestamp.today().dayofyear
+            }
+            start_date = (pd.Timestamp.today() - pd.Timedelta(days=periods[selected_period])).strftime('%Y-%m-%d')
+        else:
+            start_date = request.form.get('start_date', '2020-01-01')
+            end_date = request.form.get('end_date', end_date)
 
         for ticker in tickers_list:
             yf_ticker = ticker + '.TW' if ticker.isdigit() else ticker
