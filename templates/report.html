@@ -10,7 +10,7 @@
 </head>
 <body>
 <div class="container">
-    <h1 class="mb-4">股票績效報告</h1>
+    <h1 class="mb-4 text-center">股票績效報告</h1>
 
     <!-- 導覽按鈕列 -->
     <nav class="mb-4">
@@ -18,37 +18,37 @@
         <a href="/fundamental" class="btn {% if request.path == '/fundamental' %}btn-primary{% else %}btn-outline-secondary{% endif %} btn-sm">基本面資訊</a>
         <a href="/report" class="btn {% if request.path == '/report' %}btn-primary{% else %}btn-outline-secondary{% endif %} btn-sm">績效報告</a>
     </nav>
-
+    
     <form method="POST" class="mb-4">
+        <!--自成一行呈現-->
         <div class="form-group">
-            <label>輸入股票代號（可多個，用逗號分隔）：</label>
-            <input type="text" name="tickers" class="form-control" value="{{ tickers_input }}" placeholder="如 2330, AAPL" required>
-        </div>
-        <div class="form-row">
-            <div class="form-group">
-                <label>快速選擇回測區間：</label>
-                <div class="btn-group btn-group-sm d-flex flex-wrap mb-3" role="group">
-                    <button type="submit" name="period" value="ytd" class="btn btn-outline-primary">年初至今</button>
-                    <button type="submit" name="period" value="1m" class="btn btn-outline-primary">1個月</button>
-                    <button type="submit" name="period" value="3m" class="btn btn-outline-primary">3個月</button>
-                    <button type="submit" name="period" value="6m" class="btn btn-outline-primary">6個月</button>
-                    <button type="submit" name="period" value="1y" class="btn btn-outline-primary">1年</button>
-                    <button type="submit" name="period" value="3y" class="btn btn-outline-primary">3年</button>
-                    <button type="submit" name="period" value="5y" class="btn btn-outline-primary">5年</button>
-                    <button type="submit" name="period" value="10y" class="btn btn-outline-primary">10年</button>
-                    <button type="submit" name="period" value="20y" class="btn btn-outline-primary">20年</button>
-                    <button type="submit" name="period" value="max" class="btn btn-outline-primary">最長</button>
-                </div>
+            <label><strong>快速選擇回測區間：</strong></label><br>
+            <div class="btn-group btn-group-sm d-flex flex-wrap" role="group">
+                <button type="submit" name="period" value="ytd" class="btn btn-outline-primary">年初至今</button>
+                <button type="submit" name="period" value="1m" class="btn btn-outline-primary">1個月</button>
+                <button type="submit" name="period" value="3m" class="btn btn-outline-primary">3個月</button>
+                <button type="submit" name="period" value="6m" class="btn btn-outline-primary">6個月</button>
+                <button type="submit" name="period" value="1y" class="btn btn-outline-primary">1年</button>
+                <button type="submit" name="period" value="3y" class="btn btn-outline-primary">3年</button>
+                <button type="submit" name="period" value="5y" class="btn btn-outline-primary">5年</button>
+                <button type="submit" name="period" value="10y" class="btn btn-outline-primary">10年</button>
+                <button type="submit" name="period" value="20y" class="btn btn-outline-primary">20年</button>
+                <button type="submit" name="period" value="max" class="btn btn-outline-primary">最長</button>
             </div>
+        </div>
+    
+        <!--自成一行呈現-->
+        <div class="form-row">
             <div class="col">
-                <label>起始日期：</label>
+                <label><strong>起始日期：</strong></label>
                 <input type="date" name="start_date" class="form-control" value="{{ start_date }}">
             </div>
             <div class="col">
-                <label>結束日期：</label>
+                <label><strong>結束日期：</strong></label>
                 <input type="date" name="end_date" class="form-control" value="{{ end_date }}">
             </div>
         </div>
+    
         <button type="submit" class="btn btn-primary mt-3">產生報告</button>
     </form>
     
