@@ -133,7 +133,11 @@
                 html2canvas:  { scale: 2 },
                 jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
             };
-            html2pdf().set(opt).from(element).save();
+
+            // 延遲 500ms 等待圖表渲染完成
+            setTimeout(() => {
+                html2pdf().set(opt).from(element).save();
+            }, 500);
         }
     </script>
 
