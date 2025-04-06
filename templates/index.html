@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <!-- 引入 pyecharts 所需的 echarts.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.3.3/echarts.min.js"></script>
+    <!-- 引入 html2pdf 用來製作PDF檔案 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         body { margin: 20px; }
         .chart-container { margin-top: 20px; }
@@ -14,15 +16,17 @@
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container" id="exportArea">
         <h1 class="mb-4 text-center">台美股回測與互動圖表</h1>
+
         <!-- 導覽按鈕列 -->
         <nav class="mb-4">
             <a href="/" class="btn {% if request.path == '/' %}btn-primary{% else %}btn-outline-secondary{% endif %} btn-sm">回測分析</a>
             <a href="/fundamental" class="btn {% if request.path == '/fundamental' %}btn-primary{% else %}btn-outline-secondary{% endif %} btn-sm">基本面資訊</a>
             <a href="/report" class="btn {% if request.path == '/report' %}btn-primary{% else %}btn-outline-secondary{% endif %} btn-sm">績效報告</a>
         </nav>
-        <!-- 原本的首頁介面 -->
+
+        <!-- 回測表單 -->
         <form method="POST" class="mb-4">
             <div class="form-group">
                 <label>股票代號 (以逗號分隔, 例：2330.TW, AAPL):</label>
@@ -73,23 +77,22 @@
             </div>
             <button type="submit" class="btn btn-primary">開始回測</button>
         </form>
-        
+
         {% if price_chart_embed %}
         <div class="chart-container">
             <h2>回測期間：{{ start_date }} 至 {{ end_date }}</h2>
             <h3>股票價格走勢圖 (幣別：{% if currency=='TWD' %}台幣{% else %}美金{% endif %})</h3>
-            <!-- pyecharts 互動圖表 -->
             {{ price_chart_embed | safe }}
         </div>
         {% endif %}
-        
+
         {% if pct_chart_embed %}
         <div class="chart-container">
             <h3>股票漲跌幅百分比圖</h3>
             {{ pct_chart_embed | safe }}
         </div>
         {% endif %}
-        
+
         {% if results %}
         <div class="results-table">
             <h3>回測結果</h3>
@@ -114,23 +117,31 @@
                 </tbody>
             </table>
         </div>
-        {% endif %}
 
-        <form method="POST" action="/download" class="mt-3">
-            <input type="hidden" name="tickers" value="{{ tickers_input }}">
-            <input type="hidden" name="start_date" value="{{ start_date }}">
-            <input type="hidden" name="end_date" value="{{ end_date }}">
-            <button type="submit" name="format" value="pdf" class="btn btn-outline-danger">匯出 PDF</button>
-        </form>
-      
+        <!-- 匯出 PDF 按鈕 -->
+        <button class="btn btn-outline-danger mt-3" onclick="downloadPDF()">匯出 PDF</button>
+        {% endif %}
     </div>
+
+    <script>
+        function downloadPDF() {
+            const element = document.getElementById("exportArea");
+            const opt = {
+                margin:       0.3,
+                filename:     'report.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+    </script>
 
     <hr>
     <footer class="text-center text-muted mt-4 mb-4">
-        <span>訪問人次：{{ visitor_count }} 次</span>
-        <span>&copy; {{ current_year }} 股票回測網頁. All rights reserved.</span>
+        &copy; {{ current_year }} 股票回測網頁. All rights reserved.
     </footer>
-    
+
     <!-- 引入 Bootstrap JS 相關依賴 -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
