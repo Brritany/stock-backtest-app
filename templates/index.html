@@ -126,20 +126,31 @@
     <script>
         function downloadPDF() {
             const element = document.getElementById("exportArea");
-            const opt = {
-                margin:       0.3,
-                filename:     'report.pdf',
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2 },
-                jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
-            };
-
-            // 延遲 500ms 等待圖表渲染完成
-            setTimeout(() => {
+            const chartContainer = document.querySelector("div[id^='chart']");
+        
+            if (!chartContainer) {
+                alert("圖表尚未載入，請稍後再試！");
+                return;
+            }
+        
+            // 使用 html2canvas 前先強制等待 DOM 組件都畫完
+            new Promise((resolve) => {
+                setTimeout(() => {
+                    resolve();
+                }, 1000);  // 延遲 1000ms 等待圖表與 DOM 充分渲染
+            }).then(() => {
+                const opt = {
+                    margin:       0.3,
+                    filename:     'report.pdf',
+                    image:        { type: 'jpeg', quality: 0.98 },
+                    html2canvas:  { scale: 3, useCORS: true }, // 提高解析度 + CORS 圖片支援
+                    jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+                };
+        
                 html2pdf().set(opt).from(element).save();
-            }, 500);
+            });
         }
-    </script>
+    </script>        
 
     <hr>
     <footer class="text-center text-muted mt-4 mb-4">
